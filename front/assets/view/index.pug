@@ -1,0 +1,25 @@
+doctype
+html(ng-app="SpotTracker")
+    head
+        title Spotify Web Client
+        link(rel="shortcut icon" href="../assets/images/favicon.ico" type="image/x-icon")
+        link(rel="icon" href="../assets/images/favicon.ico" type="image/x-icon")
+        meta(name="viewport" content="width=device-width, initial-scale=1")
+        meta(charset="UTF-8")
+        link(rel="stylesheet" href="../assets/vendor/bower_components/angular-notify/dist/angular-notify.min.css")
+        link(rel="stylesheet" href="../assets/vendor/bower_components/bootstrap/dist/css/bootstrap.min.css")
+        link(rel="stylesheet" href="../../build/main.min.css")
+
+        script(src="../assets/vendor/bower_components/angular/angular.min.js")
+        script(src="//npmcdn.com/angular-ui-router@1.0.0-alpha.4/release/angular-ui-router.js")
+        script(src="../assets/vendor/bower_components/angular-sanitize/angular-sanitize.js")
+        script(src="../assets/vendor/bower_components/angular-animate/angular-animate.min.js")
+        script(src="../assets/vendor/bower_components/angular-bootstrap/ui-bootstrap-tpls.js")
+        script(src="../assets/vendor/bower_components/angular-notify/dist/angular-notify.min.js")
+
+        script(src="../../build/app.js")
+        script(src="../../build/templates.js")
+    body
+        include ../../app/header/header
+
+        div.app-content(ui-view)

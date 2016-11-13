@@ -1,0 +1,12 @@
+.container-lg
+    form.col-md-4.col-md-offset-4.register(ng-submit="spotifyLogin()" name="register" novalidate)
+        input(type='hidden', name='_csrf', value=csrf)
+        .form-group
+            label Login
+            input.form-control(type="email" name="email" ng-model="user.email"
+            placeholder="Spotify email" required autofocus)
+        p.help-block(ng-show='register.email.$dirty && register.email.$invalid') Wrong email format
+        .form-group
+            label Password
+            input.form-control(type="password" name="password" ng-model="user.password" placeholder="Spotify Password" required)
+        button.btn.btn-lg.btn-primary.btn-block.login(ng-disabled="register.$invalid" type="submit") Login

@@ -1,0 +1,52 @@
+.top-header
+    .contact.container-fluid
+        .row
+            .col-md-4.col-sm-5.col-xs-5
+                .address
+                    a.navbar-brand(ui-sref="main")
+                        div
+                            span.open-bracket [
+                            span.brand Spotify Web Client
+                            span.close-bracket ]
+                    .caption
+            .col-md-8.col-md-7.col-md-7
+                .email
+                    .icon
+                        svg(height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg")
+                            path(d="M0 0h24v24H0z" fill="none")
+                            path(d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 14H4V8l8 5 8-5v10zm-8-7L4 6h16l-8 5z")
+                    .caption
+                        a(ng-href="mailto:dmytro.kostylov@gmail.com") dmytro.kostylov@gmail.com,
+                        span &nbsp;Ukraine, Kyiv
+
+nav.navbar.navbar-default.navbar-fixed-top.navbar-inverse
+    div.container-fluid(ng-class="{'in': open}")
+        input(type="hidden" name="_csrf" ng-init="token._csrf = '" + csrf + "'" ng-model="token._csrf")
+        div.navbar-header
+            button.navbar-toggle(ng-click="open=!open" ng-init="open=false" type="button" data-toggle="collapse" data-target="#navbar" aria-expanded="true" aria-controls="navbar")
+                span.sr-only Toggle navigation
+                span.icon-bar
+                span.icon-bar
+                span.icon-bar
+
+        div.collapse.navbar-collapse(id="navbar" ng-class="{'in': open}")
+            ul.nav.navbar-nav.navbar-right
+                li(ui-sref-active="active")
+                    a(ui-sref="task") Task
+                li(ui-sref-active="active")
+                    a(ui-sref="search") Search
+                li(ui-sref-active="active")
+                    a(ui-sref="connect") Connect
+                li(ui-sref-active="active")
+                    a(ui-sref="register") Register
+                li(ui-sref-active="active")
+                    a(ui-sref="login") Login
+                li.dropdown(uib-dropdown)
+                        a.dropdown-toggle(uib-dropdown-toggle) Hi there, {{Auth.user.displayName}} &nbsp;
+                            b.caret
+                        ul.dropdown-menu(uib-dropdown-menu)
+                            li
+                                a(ui-sref="accountSettings") Account settings
+                            li.divider(role='separator')
+                            li
+                                a(tabindex="-1" ng-click="logout()") Logout

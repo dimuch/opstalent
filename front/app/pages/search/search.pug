@@ -1,0 +1,24 @@
+.container-lg
+    form.search(ng-submit="setQuery()")
+        .form-group.col-md-5.col-sm-4.col-xs-12
+            label(for="query") Hey, What you are looking for
+            input.form-control(type="text" id="query" name="queryString" ng-model="userQuery.searchText" required autofocus)
+        .form-group.col-md-5.col-sm-6.col-xs-12
+            label Search Options (check to include)
+            .form-control
+                .checkbox-inline(ng-repeat="(key, value) in userQuery.searchTypes")
+                    input(type="checkbox" name="{{key}}" ng-model="userQuery.searchTypes[key]" )
+                    label {{key}}
+        .form-group.col-md-1.col-sm-2.col-xs-12
+            button.btn.btn-primary.sptr-search(type="submit") Search It
+
+.container-lg
+    .results(ui-view)
+        uib-tabset(active="activeTab.index" ng-hide="headers.length == 0;")
+            uib-tab(heading='{{header}}' ng-repeat='header in headers track by $index')
+                ul.items(class="{{header}}" role='group' data-toggle="buttons")
+                    li.item(ng-repeat='item in result[header].items')
+                        .item-img
+                            img(ng-src='{{item.images[1].url}}')
+                        .item-name {{item.name}}
+                        .item-more-info
