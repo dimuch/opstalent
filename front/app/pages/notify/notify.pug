@@ -1,0 +1,9 @@
+.cg-notify-message(ng-class="[$classes, \
+$position === 'center' ? 'cg-notify-message-center' : '',\
+$position === 'left' ? 'cg-notify-message-left' : '',\
+$position === 'right' ? 'cg-notify-message-right' : '']", ng-style="{'margin-left': $centerMargin}")
+    div(ng-show='!$messageTemplate')
+        | {{$message}}
+    .cg-notify-message-template(ng-show='$messageTemplate')
+    button.cg-notify-close(type='button', ng-click='$close()')
+        span(aria-hidden='true')

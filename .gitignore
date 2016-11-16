@@ -3,3 +3,4 @@
 /node_modules
 /front/assets/vendor/bower_components/
 /config/
+/front/build/

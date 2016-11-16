@@ -1,0 +1,17 @@
+.container-lg
+    form.col-md-4.col-md-offset-4.register(ng-submit="userRegister()" name="register" novalidate)
+        .form-group
+            label Login
+            input.form-control(type="email" name="email" ng-model="user.email"
+            placeholder="email" ng-blur="checkUser(user.email)" required autofocus)
+            span {{sameUserCheck.result}}
+        p.help-block(ng-show='register.email.$dirty && register.email.$invalid') Wrong email format
+        .form-group
+            label Password
+            input.form-control(type="password" name="password" ng-model="user.password" placeholder="Password" required)
+        .form-group
+            label Password, once again
+            input.form-control(type="password" name="confirmPassword" ng-model="user.confirmPassword" placeholder="Password once again"
+            validate-equals="user.password")
+        p.help-block(ng-show='register.confirmPassword.$dirty && register.confirmPassword.$invalid') Passqord are not equals
+        button.btn.btn-lg.btn-primary.btn-block.login(ng-disabled="register.$invalid" type="submit") Let`s do Registration

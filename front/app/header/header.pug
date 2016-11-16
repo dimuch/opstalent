@@ -19,9 +19,8 @@
                         a(ng-href="mailto:dmytro.kostylov@gmail.com") dmytro.kostylov@gmail.com,
                         span &nbsp;Ukraine, Kyiv
 
-nav.navbar.navbar-default.navbar-fixed-top.navbar-inverse
+nav.navbar.navbar-default.navbar-fixed-top.navbar-inverse(ng-controller="header")
     div.container-fluid(ng-class="{'in': open}")
-        input(type="hidden" name="_csrf" ng-init="token._csrf = '" + csrf + "'" ng-model="token._csrf")
         div.navbar-header
             button.navbar-toggle(ng-click="open=!open" ng-init="open=false" type="button" data-toggle="collapse" data-target="#navbar" aria-expanded="true" aria-controls="navbar")
                 span.sr-only Toggle navigation
@@ -37,12 +36,13 @@ nav.navbar.navbar-default.navbar-fixed-top.navbar-inverse
                     a(ui-sref="search") Search
                 li(ui-sref-active="active")
                     a(ui-sref="connect") Connect
-                li(ui-sref-active="active")
+                li(ui-sref-active="active" ng-hide="isAuthenticated()")
                     a(ui-sref="register") Register
-                li(ui-sref-active="active")
+                li(ui-sref-active="active" ng-hide="isAuthenticated()")
                     a(ui-sref="login") Login
-                li.dropdown(uib-dropdown)
-                        a.dropdown-toggle(uib-dropdown-toggle) Hi there, {{Auth.user.displayName}} &nbsp;
+
+                li.dropdown(uib-dropdown ng-show="isAuthenticated()")
+                        a.dropdown-toggle(uib-dropdown-toggle) Hi there, {{displayName()}} &nbsp;
                             b.caret
                         ul.dropdown-menu(uib-dropdown-menu)
                             li

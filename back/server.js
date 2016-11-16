@@ -29,8 +29,17 @@ app.use(serve('./front'));
 require('./libs/render')(app);
 
 //routes
-let router = require('./routes/openRoutes');
+const router = require('./routes/openRoutes');
 app.use(router.routes());
+
+//oAuth2
+// const model = require('koa-oauth-server/node_modules/oauth2-server/examples/memory/model');
+// var oauthserver = require('koa-oauth-server');
+// app.oauth = oauthserver({
+//   model: model,
+//   grants: ['password'],
+//   debug: true
+// });
 
 
 app.listen(5300);

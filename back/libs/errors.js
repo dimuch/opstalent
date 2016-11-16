@@ -19,7 +19,7 @@ module.exports =  function *(next) {
           break;
         case 409:
           this.body = {
-            message: 'Такий користувач існує',
+            message: e.message,
             classes: ['alert-warning']
           };
           break;

@@ -1,6 +1,5 @@
 .container-lg
     form.col-md-4.col-md-offset-4.register(ng-submit="spotifyLogin()" name="register" novalidate)
-        input(type='hidden', name='_csrf', value=csrf)
         .form-group
             label Login
             input.form-control(type="email" name="email" ng-model="user.email"

@@ -10,19 +10,19 @@ angular
               return reject(res.message);
             }
 
-            if (msg) notify({message: msg, classes: res.classes});
+            // if (msg) notify({message: msg, classes: res.classes});
 
             resolve(res);
           }).error(err => {
-            msg = 'Error occurred';
-
-            if (err) {
-              if (err.message) {
-                msg = err.message;
-              } else {
-                msg = err;
-              }
-            }
+            // msg = 'Error occurred';
+            //
+            // if (err) {
+            //   if (err.message) {
+            //     msg = err.message;
+            //   } else {
+            //     msg = err;
+            //   }
+            // }
 
             reject(msg);
           })
@@ -35,6 +35,7 @@ angular
       get: function(url, data, msg) {
         return $q((resolve, reject) => {
           $http.get(url, data).success(res => {
+
             if (res.message) {
               return reject(res.message);
             }
@@ -52,7 +53,6 @@ angular
                 msg = err;
               }
             }
-
             reject(msg);
           })
         }).catch(err => {

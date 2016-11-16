@@ -82,7 +82,7 @@ gulp.task('watch', ['styles', 'scripts', 'templates'], function() {
   });
 
   // Watch .pug files
-  gulp.watch(['./front/**/*.pug'], ['templates']).on('unlink', function(filepath) {
+  gulp.watch('./front/**/*.pug', ['templates']).on('unlink', function(filepath) {
     remember.forget('templates', path.resolve(filepath))
   });
 });

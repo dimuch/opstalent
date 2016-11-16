@@ -30,7 +30,118 @@ angular.module('SpotTracker', ['ui.router', 'ngAnimate', 'templates', 'cgNotify'
     name: 'login',
     url: '/login',
     component: 'login'
+  }).state({
+    name: 'register',
+    url: '/register',
+    component: 'register'
   });
+}]);
+'use strict';
+
+angular.module('SpotTracker').directive('validateEquals', function () {
+  var validateEqual = void 0;
+  return {
+    require: 'ngModel',
+    link: function link(scope, element, attrs, ngModelCtrl) {
+      validateEqual = function validateEqual(value) {
+        var valid = value === scope.$eval(attrs.validateEquals);
+        ngModelCtrl.$setValidity('equal', valid);
+        return valid ? value : undefined;
+      };
+
+      ngModelCtrl.$parsers.push(validateEqual);
+      ngModelCtrl.$formatters.push(validateEqual);
+
+      scope.$watch(attrs.validateEquals, function () {
+        ngModelCtrl.$setViewValue(ngModelCtrl.viewValue);
+      });
+    }
+  };
+});
+'use strict';
+
+angular.module('SpotTracker').controller('header', ["$rootScope", "$scope", "Auth", function ($rootScope, $scope, Auth) {
+  // pass all Auth methods
+  $scope.logout = Auth.logout;
+
+  $scope.isAuthenticated = Auth.isAuthenticated;
+  $scope.displayName = function () {
+    console.log(Auth.getUserParam('email'));
+    if (Auth.isAuthenticated()) return Auth.getUserParam('email').split('@')[0];
+  };
+}]);
+'use strict';
+
+angular.module('SpotTracker').service('Auth', ["$state", "Http", "$window", function ($state, Http, $window) {
+  var storage = $window.localStorage;
+  var cachedToken = void 0;
+  var cachedUser = void 0;
+  var userToken = 'userToken';
+  var userEmail = 'email';
+
+  var authToken = {
+    user: {},
+
+    getUserParam: function getUserParam(param) {
+      if (cachedUser) {
+        return cachedUser[param];
+      };
+      return storage.getItem(param);
+    },
+
+    setUser: function setUser(user) {
+      angular.extend(authToken.user, user);
+      cachedUser = authToken.user;
+      storage.setItem(userEmail, user.email);
+      storage.setItem(userToken, user.userToken);
+    },
+    getUser: function getUser() {
+      if (!cachedUser) {
+        cachedUser = storage.getItem(userEmail);
+      }
+      return cachedUser;
+    },
+    setToken: function setToken(token) {
+      cachedToken = token;
+      storage.setItem(userToken, token);
+    },
+    getToken: function getToken() {
+      if (!cachedToken) {
+        cachedToken = storage.getItem(userToken);
+      }
+      return cachedToken;
+    },
+    isAuthenticated: function isAuthenticated() {
+      return !!authToken.getToken() && !!authToken.getUser();
+    },
+    removeToken: function removeToken() {
+      cachedToken = null;
+      storage.removeItem(userToken);
+    },
+    removeUser: function removeUser() {
+      cachedUser = null;
+      storage.removeItem(userEmail);
+    },
+
+    logout: function logout() {
+      Http.post('/user/logout', authToken.user).then(function (res) {
+        if (!res) return;
+
+        authToken.removeToken();
+        authToken.removeUser();
+        authToken.user = {};
+
+        $state.go('login');
+      });
+    },
+    update: function update(user) {
+      Http.post('/users/update', user, 'Personal details were successfully updated').then(function () {
+        auth.setUser(user);
+      });
+    }
+  };
+
+  return authToken;
 }]);
 'use strict';
 
@@ -44,19 +155,19 @@ angular.module('SpotTracker').factory('Http', ["$rootScope", "$http", "$q", "not
             return reject(res.message);
           }
 
-          if (msg) notify({ message: msg, classes: res.classes });
+          // if (msg) notify({message: msg, classes: res.classes});
 
           resolve(res);
         }).error(function (err) {
-          msg = 'Error occurred';
-
-          if (err) {
-            if (err.message) {
-              msg = err.message;
-            } else {
-              msg = err;
-            }
-          }
+          // msg = 'Error occurred';
+          //
+          // if (err) {
+          //   if (err.message) {
+          //     msg = err.message;
+          //   } else {
+          //     msg = err;
+          //   }
+          // }
 
           reject(msg);
         });
@@ -69,6 +180,7 @@ angular.module('SpotTracker').factory('Http', ["$rootScope", "$http", "$q", "not
     get: function get(url, data, msg) {
       return $q(function (resolve, reject) {
         $http.get(url, data).success(function (res) {
+
           if (res.message) {
             return reject(res.message);
           }
@@ -86,7 +198,6 @@ angular.module('SpotTracker').factory('Http', ["$rootScope", "$http", "$q", "not
               msg = err;
             }
           }
-
           reject(msg);
         });
       }).catch(function (err) {
@@ -105,17 +216,14 @@ angular.module('SpotTracker').component('connect', {
     $scope.user = {};
 
     $scope.spotifyUserConnect = function () {
-      var url = "/login";
+      var url = "/connect";
 
-      Http.get(url, user).then(function (res) {
+      Http.get(url).then(function (res) {
         if (!res) return;
-        if (res) notify({ message: 'approve request', classes: res.classes });
         $window.location.href = res.url;
       }).catch(function (err) {
-        console.log(err);
-        notify({ message: "Provided Credentials are wrong or you are in approved country" + err, classes: ['alert-warning'] });
+        notify({ message: "Something wrong with Spotify service. Please try later" + err, classes: ['alert-warning'] });
       });
-      // Auth.login($scope.user).then(res => $scope.loading = false);
     };
   }]
 });
@@ -124,28 +232,62 @@ angular.module('SpotTracker').component('connect', {
 angular.module('SpotTracker').component('login', {
   templateUrl: 'login',
 
-  controller: ["$scope", "Http", "notify", "$window", function controller($scope, Http, notify, $window) {
-    $scope.spotifyFrame = { file: '' };
+  controller: ["$scope", "Http", "notify", "Auth", "$state", function controller($scope, Http, notify, Auth, $state) {
 
     $scope.spotifyLogin = function () {
-      // let user = $scope.user;
-      var user = {
-        email: "dmytro.kostylov@gmail.com",
-        password: "toshato$2016"
-      };
-      var url = "/login";
+      var user = $scope.user;
+      var url = "/user/login";
 
       $scope.url = {};
 
-      Http.get(url, user).then(function (res) {
+      Http.post(url, user).then(function (res) {
         if (!res) return;
-        if (res) notify({ message: 'approve request', classes: res.classes });
-        $window.location.href = res.url;
+        if (res) notify({ message: 'Logged in', classes: res.classes });
+        Auth.setUser(res);
+        $state.go('search');
       }).catch(function (err) {
         console.log(err);
-        notify({ message: "Provided Credentials are wrong or you are in approved country" + err, classes: ['alert-warning'] });
+        notify({ message: "Provided Credentials are wrong" + err, classes: ['alert-warning'] });
       });
-      // Auth.login($scope.user).then(res => $scope.loading = false);
+    };
+  }]
+});
+'use strict';
+
+angular.module('SpotTracker').component('register', {
+  templateUrl: 'register',
+
+  controller: ["$scope", "Http", "notify", "Auth", "$state", function controller($scope, Http, notify, Auth, $state) {
+    $scope.user = {};
+    $scope.sameUserCheck = { result: '' };
+
+    $scope.checkUser = function (email) {
+      if (!email) return;
+      var url = "/user";
+      $scope.sameUserCheck = { result: 'Checking' };
+
+      Http.post(url, { email: email }).then(function (res) {
+        if (!res) return;
+        if (res) notify({ message: 'You can create account with email ' + email, classes: ['alert-success'] });
+        $scope.sameUserCheck = { result: 'good' };
+      }).catch(function (err) {
+        $scope.sameUserCheck = { result: 'need other email' };
+      });
+    };
+
+    $scope.userRegister = function () {
+      var user = $scope.user;
+      var url = "/user/register";
+
+      Http.post(url, user).then(function (res) {
+        if (!res) return;
+        if (res && res.status) notify({ message: 'Your account has been created', classes: ['alert-success'] });
+
+        Auth.setUser(res);
+        $state.go('search');
+      }).catch(function (err) {
+        notify({ message: "Something going wrong " + err, classes: ['alert-warning'] });
+      });
     };
   }]
 });

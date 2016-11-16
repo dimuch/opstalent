@@ -5,19 +5,16 @@ angular.module('SpotTracker').component('connect', {
     $scope.user = {};
 
     $scope.spotifyUserConnect = () => {
-      let url="/login";
+      let url="/connect";
 
-      Http.get(url, user)
+      Http.get(url)
         .then((res) => {
           if(!res) return;
-          if (res) notify({message: 'approve request', classes: res.classes});
           $window.location.href = res.url;
         })
         .catch((err) => {
-          console.log(err);
-          notify({message: "Provided Credentials are wrong or you are in approved country" + err, classes: ['alert-warning']});
+          notify({message: "Something wrong with Spotify service. Please try later" + err, classes: ['alert-warning']});
         });
-      // Auth.login($scope.user).then(res => $scope.loading = false);
     }
   }
 });
