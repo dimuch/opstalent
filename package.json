@@ -4,6 +4,7 @@
   "description": "spotify crawler",
   "main": "./back/server",
   "scripts": {
+    "setup": "npm install && bower install",
     "start": "node ./back/server",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
