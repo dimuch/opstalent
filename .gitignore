@@ -2,9 +2,9 @@
 /.sass-cache
 /node_modules
 /front/assets/vendor/bower_components/
-/config/
 /front/build/
 /optalent.iml
 /README.md
 /node_modules/
 /.idea/
+/opstalent.iml
