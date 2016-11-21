@@ -2,10 +2,10 @@
 test task
 
 #how to use
-1) clone repo
-2) npm install
-3) in root project folder create folder config
-4) goto config folder and create js file default.js like below:
+1) clone repo <br>
+2) npm install <br>
+3) in root project folder create folder config <br>
+4) goto config folder and create js file default.js like below: <br>
 
 module.exports = {<br>
   client_id:   'put_your_app_spotify_client_id', <br>
