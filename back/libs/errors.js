@@ -23,6 +23,12 @@ module.exports =  function *(next) {
             classes: ['alert-warning']
           };
           break;
+        case 400:
+          this.body = {
+            message: e.message,
+            classes: ['alert-warning']
+          };
+          break;
 
         case 500:
           this.body = {

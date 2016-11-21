@@ -45,5 +45,10 @@ angular
         url: '/register',
         component: 'register'
       })
+      .state({
+        name: 'user',
+        url: '/user/:id',
+        component: 'user'
+      })
     }
   ]);

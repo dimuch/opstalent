@@ -10,23 +10,21 @@ angular
     let authToken = {
       user: {},
 
-      getUserParam: (param) => {
-        if(cachedUser) {
-          return cachedUser[param]
-        };
-        return storage.getItem(param);
-      },
-
       setUser: (user) => {
         angular.extend(authToken.user, user);
         cachedUser = authToken.user;
-        storage.setItem(userEmail, user.email);
+        storage.setItem(userEmail, JSON.stringify({email: user.email}));
         storage.setItem(userToken, user.userToken);
       },
-      getUser: () => {
+
+      getUser: (param) => {
         if(!cachedUser){
-          cachedUser = storage.getItem(userEmail);
+          cachedUser = JSON.parse(storage.getItem(param));
         }
+        // let user = JSON.parse(cachedUser);
+
+        if(param) return cachedUser[param];
+
         return cachedUser;
       },
       setToken: (token) => {
@@ -40,7 +38,7 @@ angular
         return cachedToken;
       },
       isAuthenticated: () => {
-        return !!authToken.getToken() && !!authToken.getUser();
+        return !!authToken.getToken() && !!authToken.getUser('email');
       },
       removeToken: () => {
         cachedToken = null;
@@ -49,6 +47,7 @@ angular
       removeUser: () => {
         cachedUser= null;
         storage.removeItem(userEmail);
+        authToken.user = {};
       },
 
       logout: () => {
@@ -57,7 +56,6 @@ angular
 
           authToken.removeToken();
           authToken.removeUser();
-          authToken.user = {};
 
           $state.go('login');
         })
@@ -67,7 +65,7 @@ angular
           auth.setUser(user);
         });
       }
-    }
+    };
 
     return authToken;
   });

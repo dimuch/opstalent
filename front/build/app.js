@@ -34,6 +34,10 @@ angular.module('SpotTracker', ['ui.router', 'ngAnimate', 'templates', 'cgNotify'
     name: 'register',
     url: '/register',
     component: 'register'
+  }).state({
+    name: 'user',
+    url: '/user/:id',
+    component: 'user'
   });
 }]);
 'use strict';
@@ -61,13 +65,12 @@ angular.module('SpotTracker').directive('validateEquals', function () {
 'use strict';
 
 angular.module('SpotTracker').controller('header', ["$rootScope", "$scope", "Auth", function ($rootScope, $scope, Auth) {
-  // pass all Auth methods
   $scope.logout = Auth.logout;
 
   $scope.isAuthenticated = Auth.isAuthenticated;
+
   $scope.displayName = function () {
-    console.log(Auth.getUserParam('email'));
-    if (Auth.isAuthenticated()) return Auth.getUserParam('email').split('@')[0];
+    if (Auth.isAuthenticated()) return Auth.getUser('email').split('@')[0];
   };
 }]);
 'use strict';
@@ -82,23 +85,21 @@ angular.module('SpotTracker').service('Auth', ["$state", "Http", "$window", func
   var authToken = {
     user: {},
 
-    getUserParam: function getUserParam(param) {
-      if (cachedUser) {
-        return cachedUser[param];
-      };
-      return storage.getItem(param);
-    },
-
     setUser: function setUser(user) {
       angular.extend(authToken.user, user);
       cachedUser = authToken.user;
-      storage.setItem(userEmail, user.email);
+      storage.setItem(userEmail, JSON.stringify({ email: user.email }));
       storage.setItem(userToken, user.userToken);
     },
-    getUser: function getUser() {
+
+    getUser: function getUser(param) {
       if (!cachedUser) {
-        cachedUser = storage.getItem(userEmail);
+        cachedUser = JSON.parse(storage.getItem(param));
       }
+      // let user = JSON.parse(cachedUser);
+
+      if (param) return cachedUser[param];
+
       return cachedUser;
     },
     setToken: function setToken(token) {
@@ -112,7 +113,7 @@ angular.module('SpotTracker').service('Auth', ["$state", "Http", "$window", func
       return cachedToken;
     },
     isAuthenticated: function isAuthenticated() {
-      return !!authToken.getToken() && !!authToken.getUser();
+      return !!authToken.getToken() && !!authToken.getUser('email');
     },
     removeToken: function removeToken() {
       cachedToken = null;
@@ -121,6 +122,7 @@ angular.module('SpotTracker').service('Auth', ["$state", "Http", "$window", func
     removeUser: function removeUser() {
       cachedUser = null;
       storage.removeItem(userEmail);
+      authToken.user = {};
     },
 
     logout: function logout() {
@@ -129,7 +131,6 @@ angular.module('SpotTracker').service('Auth', ["$state", "Http", "$window", func
 
         authToken.removeToken();
         authToken.removeUser();
-        authToken.user = {};
 
         $state.go('login');
       });
@@ -331,4 +332,22 @@ angular.module('SpotTracker').component('task', {
   controller: function controller() {
     this.test = 'task';
   }
+});
+'use strict';
+
+angular.module('SpotTracker').component('user', {
+  templateUrl: 'user',
+
+  controller: ["$scope", "Http", "notify", "Auth", "$stateParams", function controller($scope, Http, notify, Auth, $stateParams) {
+    $scope.user = {};
+    var user = $stateParams.id;
+    var url = '/user/' + user;
+
+    Http.get(url, { id: user }).then(function (res) {
+      if (!res) return;
+      if (res) $scope.user = res;
+    }).catch(function (err) {
+      notify({ message: err.message, classes: ['alert-warning'] });
+    });
+  }]
 });

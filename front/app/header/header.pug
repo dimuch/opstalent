@@ -46,7 +46,7 @@ nav.navbar.navbar-default.navbar-fixed-top.navbar-inverse(ng-controller="header"
                             b.caret
                         ul.dropdown-menu(uib-dropdown-menu)
                             li
-                                a(ui-sref="accountSettings") Account settings
+                                a(ui-sref='user({id: displayName()})') Account settings
                             li.divider(role='separator')
                             li
                                 a(tabindex="-1" ng-click="logout()") Logout

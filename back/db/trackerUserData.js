@@ -3,9 +3,9 @@ const mongoose = require('mongoose');
 mongoose.Promise = global.Promise;
 const crypto = require('crypto');
 
-let db = mongoose.createConnection('mongodb://localhost/spotify');
+let db = mongoose.createConnection('mongodb://localhost/trackerUserData');
 
-let personSchema = new mongoose.Schema({
+let trakerUser = new mongoose.Schema({
   'email': {
     type: String,
     required: true,
@@ -25,11 +25,9 @@ let personSchema = new mongoose.Schema({
     unique: false,
     default: ''
   }
-  // ,twitter_id: String,
-  // google_id: String
 });
 
-personSchema.methods.generateToken = (payload, secret) => {
+trakerUser.methods.generateToken = (payload, secret) => {
   let algorithm = 'HS256';
   let header = {
     typ: 'JWT',
@@ -50,4 +48,4 @@ let base64Encode = (str) => {
 };
 
 
-module.exports = db.model("Person", personSchema);
+module.exports = db.model("trakerUser", trakerUser);

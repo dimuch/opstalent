@@ -4,8 +4,9 @@ const config = require('config');
 const rp = require('request-promise');
 const bcrypt = require('bcrypt-promise');
 
-let User = require('../db/user');
-let token = new User();
+let TrakerUser = require('../db/trackerUserData');
+let SpotifyUser = require('../db/spotifyUserData');
+let token = new TrakerUser();
 
 const allPublicRoutes = new Router();
 
@@ -14,10 +15,29 @@ allPublicRoutes.get('/', function *(){
   this.render('index');
 });
 
+allPublicRoutes.get('/user/:id', function *(){
+  let id = this.params.id;
+
+  yield SpotifyUser.find({'user.id':id})
+  .then((data) => {
+    if(data && data.length !== 0) {
+      console.log(data);
+      return this.body = data[0].user;
+    }
+
+    this.throw(400, {message: "Sorry, user " + id + ' doesn`t exist'});
+  })
+  .catch((err) => {
+    this.throw( err.status, {
+      message: err.message
+    });
+  });
+});
+
 //check same user
 allPublicRoutes.post('/user', function *(){
   let body = this.request.body;
-  yield User.find({email: body.email})
+  yield TrakerUser.find({email: body.email})
     .then((res) => {
       console.log(1, res);
       if(res && res.length === 0) {
@@ -44,7 +64,7 @@ allPublicRoutes.post('/user/register', function *(){
   let hash = yield bcrypt.hash(body.password, salt);
   let userToken = token.generateToken({date: Date.now() + Math.random(), host: this.hostname}, config.get('client_id'));
 
-  let newUser = new User({
+  let newUser = new TrakerUser({
     email: body.email,
     password: hash,
     userToken: userToken
@@ -73,7 +93,7 @@ allPublicRoutes.post('/user/login', function *() {
   let reqUser = this.request.body;
   let user;
 
-  yield User.find({email: reqUser.email})
+  yield TrakerUser.find({email: reqUser.email})
     .then((res) => {
       if (res && res.length !== 0) {
         user = res[0].toObject();
@@ -88,7 +108,7 @@ allPublicRoutes.post('/user/login', function *() {
 
     let userToken = token.generateToken({date: Date.now() + Math.random(), host: this.hostname}, config.get('client_id'));
 
-    yield  User.update({_id: user._id}, {userToken: userToken})
+    yield  TrakerUser.update({_id: user._id}, {userToken: userToken})
       .then(() => {
         user.userToken = userToken;
         delete user.password;
@@ -96,7 +116,7 @@ allPublicRoutes.post('/user/login', function *() {
       });
 
   } else {
-      this.throw(401, {message: "22 Sorry, wrong credentials for " + user.email});
+      this.throw(401, {message: "Sorry, wrong credentials for " + user.email});
   }
 });
 
@@ -104,7 +124,7 @@ allPublicRoutes.post('/user/login', function *() {
 //user logout
 allPublicRoutes.post('/user/logout', function *() {
   let reqUser = this.request.body;
-  yield  User.update({_id: reqUser._id}, {userToken: 'expired'})
+  yield  TrakerUser.update({_id: reqUser._id}, {userToken: 'expired'})
     .then(() => {
       this.body = {};
     });
@@ -131,11 +151,9 @@ allPublicRoutes.post('/search', function *(){
 
   yield  rp(options)
     .then((res) => {
-      console.log('=====================================');
       return this.body = {data: res, classes: ['alert-success']};
     }).catch((e) => {
-      this.throw(400, 'Some thing going wrong');
-      console.log('---------------------------------------------');
+      this.throw(400, 'Some thing going wrong on search req');
     })
 
 });
@@ -145,15 +163,16 @@ allPublicRoutes.get('/connect', function *(){
   let uri = 'https://accounts.spotify.com/authorize?';
   let qs = 'client_id=' + config.get('client_id') +
     '&redirect_uri=' + config.get('redirect_uri') +
-    '&response_type=code&scope=user-read-private user-read-email';
+    '&response_type=code&scope=user-read-private user-read-email user-library-read';
 
   this.body=({url: (uri + qs)});
 });
 
 // getting auth token
-allPublicRoutes.get('/home', function *(){
+allPublicRoutes.get('/aftercode', function *(){
+  let spotifyUserData = {};
   let code = this.query.code;
-  let options = {
+  let spotTokenReq = {
     method: 'POST',
     uri: 'https://accounts.spotify.com/api/token',
     form:{
@@ -167,23 +186,46 @@ allPublicRoutes.get('/home', function *(){
     }
   };
 
-  yield rp(options)
-    .then((res) => {
-      console.log(res);
-      this.body = res;
+  let spotUserDataReq = {};
 
-      var options = {
+  yield rp(spotTokenReq)
+    .then((tokens) => {
+      spotifyUserData.tokens = tokens;
+      spotUserDataReq = {
         url: 'https://api.spotify.com/v1/me',
-        headers: { 'Authorization': 'Bearer ' + access_token },
+        headers: { 'Authorization': 'Bearer ' + tokens.access_token },
         json: true
       };
-
-      this.redirect('http://localhost:5300/#/search');
-    }).catch((e) => {
-      console.log(e);
-      console.log('---------------------------------------------');
-      this.throw(400, 'Some thing going wrong');
+    })
+    .catch((e) => {
+      this.throw(400, 'Some thing going wrong on spotTokenReq');
     });
+
+  let newSpotifyUser;
+
+  yield rp(spotUserDataReq)
+    .then((user) => {
+      spotifyUserData.user = user;
+      newSpotifyUser = new SpotifyUser({
+        user: spotifyUserData.user,
+        tokens: spotifyUserData.tokens
+      });
+    })
+    .catch((e) => {
+      this.throw(400, 'Some thing going wrong on spotUserDataReq');
+    });
+
+
+  yield newSpotifyUser.save()
+  .then((res) => {
+    this.redirect('http://localhost:5300/#/user/' + spotifyUserData.user.id);
+    return this.body = {status:'ok'};
+  })
+  .catch((err) => {
+    this.throw( err.status, {
+      message: err.message
+    });
+  });
 
 });
 
